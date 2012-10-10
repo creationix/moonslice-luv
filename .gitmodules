@@ -1,0 +1,6 @@
+[submodule "lhttp_parser"]
+	path = lhttp_parser
+	url = https://github.com/creationix/lhttp_parser.git
+[submodule "luv"]
+	path = luv
+	url = https://github.com/creationix/luv.git
