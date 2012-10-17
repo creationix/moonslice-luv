@@ -1,5 +1,6 @@
 local uv = require('luv')
 local Object = require('core').Object
+local table = require('table')
 
 local function noop() end
 local continuable = {}
@@ -8,37 +9,39 @@ local Queue = Object:extend()
 continuable.Queue = Queue
 
 function Queue:initialize()
-  self.first = 1
-  self.last = 0
+  self.head = {}
+  self.tail = {}
+  self.index = 1
+  self.headLength = 0
   self.length = 0
 end
 
-function Queue:push(item)
-  self.last = self.last + 1
-  self.length = self.length + 1
-  self[self.last] = item
+function Queue:shift()
+  if self.index > self.headLength then
+    -- When the head is empty, swap it with the tail to get fresh items
+    self.head, self.tail = self.tail, self.head
+    self.index = 1
+    self.headLength = #self.head
+    -- If it's still empty, return nothing
+    if self.headLength == 0 then
+      return
+    end
+  end
+
+  -- There was an item in the head, let's pull it out
+  local value = self.head[self.index]
+  -- And remove it from the head
+  self.head[self.index] = nil
+  -- And bump the index
+  self.index = self.index + 1
+  self.length = self.length - 1
+  return value
 end
 
-function Queue:shift()
-  -- Ignore the call if the queue is empty. Return
-  if self.length == 0 then
-    return
-  end
-
-  -- Get the first item
-  local item = self[self.first]
-  self[self.first] = nil
-  self.length = self.length - 1
-
-  if self.first == self.last then
-    -- If it was the last item, reset the queue
-    self:initialize()
-  else
-    -- Otherwise enqueue the next item.
-    self.first = self.first + 1
-  end
-
-  return item
+function Queue:push(item)
+  -- Pushes always go to the write-only tail
+  self.length = self.length + 1
+  return table.insert(self.tail, item)
 end
 
 local ReadableStream = Object:extend()
