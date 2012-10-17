@@ -3,6 +3,8 @@ local runOnce = require('luv').runOnce
 local socketHandler = require('web').socketHandler
 local createServer = require('continuable').createServer
 
+local host = os.getenv("IP") or "0.0.0.0"
+local port = os.getenv("PORT") or 8080
 
 local app = function (req, res)
 --  p{req=req,res=res}
@@ -23,7 +25,7 @@ app({
   headers = {}
 }, p)
 
-createServer("0.0.0.0", 8080, socketHandler(app))
+createServer(host, port, socketHandler(app))
 print("http server listening at http://localhost:8080/")
 
 require('luv').run()
