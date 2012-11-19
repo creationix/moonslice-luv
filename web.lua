@@ -136,7 +136,7 @@ function web.socketHandler(app) return function (client)
     else
       client:write()(function (err)
         if (err) then error(err) end
-        client:close()()
+        client:close()
       end)
     end
   end
