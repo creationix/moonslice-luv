@@ -18,7 +18,8 @@ local app = function (req, res)
         table.insert(parts, chunk)
       end
     until not chunk
-    local body = dump(parts) .. "\n"
+    req.body = parts
+    local body = dump(req) .. "\n"
     res(200, {
       ["Content-Type"] = "text/plain"
     }, body)
