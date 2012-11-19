@@ -1,5 +1,6 @@
 local newHttpParser = require('lhttp_parser').new
 local parseUrl = require('lhttp_parser').parseUrl
+local ReadableStream = require('continuable').ReadableStream
 local table = require('table')
 
 local web = {}
@@ -79,6 +80,7 @@ function web.socketHandler(app) return function (client)
     end,
     onHeadersComplete = function (info)
       request = info
+      request.body = ReadableStream:new()
       request.url = url
       request.headers = headers
       request.parser = parser
@@ -119,12 +121,12 @@ function web.socketHandler(app) return function (client)
       end)
     end,
     onBody = function (chunk)
-      request.inputQueue:push(chunk)
-      request:processReaders()
+      request.body.inputQueue:push(chunk)
+      request.body:processReaders()
     end,
     onMessageComplete = function ()
-      request.inputQueue:push()
-      request:processReaders()
+      request.body.inputQueue:push()
+      request.body:processReaders()
     end
   })
 
