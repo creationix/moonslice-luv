@@ -63,7 +63,8 @@ local STATUS_CODES = {
 function web.socketHandler(app) return function (client)
 
   local currentField, headers, url, request, done
-  local parser = newHttpParser("request", {
+  local parser
+  parser = newHttpParser("request", {
     onMessageBegin = function ()
       headers = {}
     end,
@@ -133,7 +134,7 @@ function web.socketHandler(app) return function (client)
     else
       client:write()(function (err)
         if (err) then error(err) end
-        tcp.close(client.handle)()
+        client:close()()
       end)
     end
   end
