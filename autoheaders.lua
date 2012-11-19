@@ -4,6 +4,9 @@ local osDate = require('os').date
 
 return function (app)
   return function (req, res)
+    if req.headers.expect == "100-continue" then
+      req.socket:write("HTTP/1.1 100 Continue\r\n\r\n")()
+    end
     app(req, function (code, headers, body)
       local hasDate = false
       local hasServer = false
