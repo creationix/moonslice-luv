@@ -103,14 +103,6 @@ function TcpStream:close(onClose)
   self.handle:close()
 end
 
-function TcpStream:write(chunk) return function (callback)
-  return self.handle:write(chunk, callback)
-end end
-
-function TcpStream:shutdown() return function (callback)
-  return self.handle:shutdown(callback)
-end end
-
 function TcpStream:resume()
   return self.handle:readStart()
 end
