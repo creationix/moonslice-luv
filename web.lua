@@ -94,11 +94,19 @@ function web.socketHandler(app) return function (client)
           table.insert(head, key .. ": " .. value .. "\r\n")
         end
         table.insert(head, "\r\n")
-        if type(body) == "string" then
-          table.insert(head, body)
+        local isStream = type(body) == "table" and type(body.read) == "function"
+        if not isStream then
+          if type(body) == "table" then
+            for i, v in ipairs(body) do
+              table.insert(head, body[i])
+            end
+          else
+            table.insert(head, body)
+          end
+
         end
-        client:write(table.concat(head))()
-        if type(body) ~= "table" then
+        client:write(head)()
+        if not isStream then
           done(info.should_keep_alive)
         else
 

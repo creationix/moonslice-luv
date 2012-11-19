@@ -30,23 +30,32 @@ return function (app)
           headers["Content-Length"] = #body
           hasContentLength = true
         elseif type(body) == "table" then
-          headers["Transfer-Encoding"] = "chunked"
-          hasTransferEncoding = true
-          local originalStream = body
-          body = { done = false }
-          function body:read() return function (callback)
-            if self.done then
-              return callback()
+          if type(body.read) ~= "function" then
+            local length = 0
+            for i, v in ipairs(body) do
+              length = length + #v
             end
-            originalStream:read()(function (err, chunk)
-              if err then return callback(err) end
-              if chunk then
-                return callback(nil, stringFormat("%X\r\n%s\r\n", #chunk, chunk))
+            headers["Content-Length"] = length
+            hasContentLength = true
+          else
+            headers["Transfer-Encoding"] = "chunked"
+            hasTransferEncoding = true
+            local originalStream = body
+            body = { done = false }
+            function body:read() return function (callback)
+              if self.done then
+                return callback()
               end
-              self.done = true
-              callback(nil, "0\r\n\r\n\r\n")
-            end)
-          end end
+              originalStream:read()(function (err, chunk)
+                if err then return callback(err) end
+                if chunk then
+                  return callback(nil, stringFormat("%X\r\n%s\r\n", #chunk, chunk))
+                end
+                self.done = true
+                callback(nil, "0\r\n\r\n\r\n")
+              end)
+            end end
+          end
         end
       end
       if req.should_keep_alive and (hasContentLength or hasTransferEncoding or code == 304) then

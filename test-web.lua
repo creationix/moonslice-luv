@@ -10,7 +10,7 @@ local app = function (req, res)
 --  p{req=req,res=res}
   res(200, {
     ["Content-Type"] = "text/plain"
-  }, "Hello World\n")
+  }, {"Hello ", "World\n"})
 end
 
 app = require('autoheaders')(app)
