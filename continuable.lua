@@ -97,7 +97,7 @@ function TcpStream:initialize(handle)
 end
 
 function TcpStream:close()
-  self.handle:close()
+  return self.handle:close()
 end
 
 function TcpStream:resume()
