@@ -1,6 +1,23 @@
+local luv = require('luv')
 local ReadableStream = require('continuable').ReadableStream
 local stringFormat = require('string').format
 local osDate = require('os').date
+
+local defaultServerHeader = "MoonSlice " .. _VERSION
+
+local getDate
+do
+  local now
+  local timer = luv.newTimer()
+  function timer:ontimeout()
+    --print("interval", self)
+    now = osDate("!%a, %d %b %Y %H:%M:%S GMT")
+  end
+  getDate = function()
+    return now
+  end
+  timer:start(0, 1000)
+end
 
 return function (app)
   return function (req, res)
@@ -20,10 +37,10 @@ return function (app)
         if name == "transfer-encoding" then hasTransferEncoding = true end
       end
       if not hasDate then
-        headers['Date'] = osDate("!%a, %d %b %Y %H:%M:%S GMT")
+        headers['Date'] = getDate()
       end
       if not hasServer then
-        headers['Server'] = "MoonSlice " .. _VERSION
+        headers['Server'] = defaultServerHeader
       end
       if body and (not hasContentLength) and (not hasTransferEncoding) then
         if type(body) == "string" then
