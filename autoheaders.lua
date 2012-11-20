@@ -2,7 +2,22 @@ local ReadableStream = require('continuable').ReadableStream
 local stringFormat = require('string').format
 local osDate = require('os').date
 
-return function (app)
+return function (app, options)
+  if not options then
+    options = {}
+  end
+  if options.autoServer == nil then
+    options.autoServer = "MoonSlice " .. _VERSION
+  end
+  if options.autoDate == nil then
+    options.autoDate = true
+  end
+  if options.autoChunkedEncoding == nil then
+    options.autoChunkedEncoding = true
+  end
+  if options.autoContentLength == nil then
+    options.autoContentLength = true
+  end
   return function (req, res)
     if req.headers.expect == "100-continue" then
       req.socket:write("HTTP/1.1 100 Continue\r\n\r\n")()
@@ -19,32 +34,52 @@ return function (app)
         if name == "content-length" then hasContentLength = true end
         if name == "transfer-encoding" then hasTransferEncoding = true end
       end
-      if not hasDate then
+      if not hasDate and options.autoDate then
         headers['Date'] = osDate("!%a, %d %b %Y %H:%M:%S GMT")
       end
-      if not hasServer then
-        headers['Server'] = "MoonSlice " .. _VERSION
+      if not hasServer and options.autoServer then
+        headers['Server'] = options.autoServer
       end
       if body and (not hasContentLength) and (not hasTransferEncoding) then
-        if type(body) == "string" then
-          headers["Content-Length"] = #body
-          hasContentLength = true
-        elseif type(body) == "table" then
-          if type(body.read) ~= "function" then
+        local isStream = type(body) == "table" and type(body.read) == "function"
+        if not isStream and options.autoContentLength then
+          if type(body) == "table" then
             local length = 0
             for i, v in ipairs(body) do
               length = length + #v
             end
             headers["Content-Length"] = length
-            hasContentLength = true
           else
-            headers["Transfer-Encoding"] = "chunked"
-            hasTransferEncoding = true
+            headers["Content-Length"] = #body
+          end
+          hasContentLength = true
+        end
+
+        if not hasContentLength and options.autoChunkedEncoding then
+          headers["Transfer-Encoding"] = "chunked"
+          hasTransferEncoding = true
+          if not isStream then
+            if type(body) == "table" then
+              local length = 0
+              for i, v in ipairs(body) do
+                length = length + #v
+              end
+              table.insert(body, 1, stringFormat("%X\r\n", length))
+              table.insert(body, "\r\n0\r\n\r\n")
+            else
+              body = {
+                stringFormat("%X\r\n", #body),
+                body,
+                "\r\n0\r\n\r\n"
+              }
+           end
+          else
             local originalStream = body
-            body = { done = false }
+            local done = false
+            body = {}
             -- http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
             function body:read() return function (callback)
-              if self.done then
+              if done then
                 return callback()
               end
               originalStream:read()(function (err, chunk)
@@ -67,13 +102,14 @@ return function (app)
                   table.insert(parts, "\r\n")
                   return callback(nil, parts)
                 end
-                self.done = true
+                done = true
                 -- This line is last-chunk, an empty trailer, and CRLF combined
-                callback(nil, "0\r\n\r\n\r\n")
+                callback(nil, "0\r\n\r\n")
               end)
             end end
           end
         end
+
       end
       if req.should_keep_alive and (hasContentLength or hasTransferEncoding or code == 304) then
         headers["Connection"] = "keep-alive"
