@@ -2,6 +2,7 @@ local newHttpParser = require('lhttp_parser').new
 local parseUrl = require('lhttp_parser').parseUrl
 local ReadableStream = require('continuable').ReadableStream
 local table = require('table')
+local stringFormat = require('string').format
 
 local web = {}
 
@@ -89,9 +90,16 @@ function web.socketHandler(app) return function (client)
         local reasonPhrase = STATUS_CODES[statusCode] or 'unknown'
         if not reasonPhrase then error("Invalid response code " .. tostring(statusCode)) end
 
-        local head = {"HTTP/1.1 " .. tostring(statusCode) .. " " .. reasonPhrase .. "\r\n"}
+        local head = {
+          stringFormat("HTTP/1.1 %s %s\r\n\r\n", statusCode, reasonPhrase)
+        }
         for key, value in pairs(headers) do
-          table.insert(head, key .. ": " .. value .. "\r\n")
+          if type(key) == "number" then
+            table.insert(head, value)
+            table.insert(head, "\r\n")
+          else
+            table.insert(head, stringFormat("%s: %s\r\n", key, value))
+          end
         end
         table.insert(head, "\r\n")
         local isStream = type(body) == "table" and type(body.read) == "function"
@@ -103,7 +111,6 @@ function web.socketHandler(app) return function (client)
           else
             table.insert(head, body)
           end
-
         end
         client:write(head)()
         if not isStream then
