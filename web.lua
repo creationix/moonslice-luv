@@ -91,7 +91,7 @@ function web.socketHandler(app) return function (client)
         if not reasonPhrase then error("Invalid response code " .. tostring(statusCode)) end
 
         local head = {
-          stringFormat("HTTP/1.1 %s %s\r\n\r\n", statusCode, reasonPhrase)
+          stringFormat("HTTP/1.1 %s %s\r\n", statusCode, reasonPhrase)
         }
         for key, value in pairs(headers) do
           if type(key) == "number" then
