@@ -42,6 +42,7 @@ return function (app)
             hasTransferEncoding = true
             local originalStream = body
             body = { done = false }
+            -- http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
             function body:read() return function (callback)
               if self.done then
                 return callback()
@@ -67,6 +68,7 @@ return function (app)
                   return callback(nil, parts)
                 end
                 self.done = true
+                -- This line is last-chunk, an empty trailer, and CRLF combined
                 callback(nil, "0\r\n\r\n\r\n")
               end)
             end end
