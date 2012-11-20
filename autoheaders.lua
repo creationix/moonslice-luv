@@ -49,7 +49,16 @@ return function (app)
               originalStream:read()(function (err, chunk)
                 if err then return callback(err) end
                 if chunk then
-                  return callback(nil, stringFormat("%X\r\n%s\r\n", #chunk, chunk))
+                  local length
+                  if type(chunk) == "table" then
+                    length = 0
+                    for i, v in ipairs(body) do
+                      length = length + #v
+                    end
+                  else
+                    length = #chunk
+                  end
+                  return callback(nil, stringFormat("%X\r\n%s\r\n", length, chunk))
                 end
                 self.done = true
                 callback(nil, "0\r\n\r\n\r\n")
