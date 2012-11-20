@@ -27,7 +27,11 @@ return function (app, options)
       local hasServer = false
       local hasContentLength = false
       local hasTransferEncoding = false
-      for name in pairs(headers) do
+      for name, value in pairs(headers) do
+        if type(name) == "number" then
+          local a, b
+          a, b, name = value:find("([^:]*)")
+        end
         name = name:lower()
         if name == "date" then hasDate = true end
         if name == "server" then hasServer = true end
