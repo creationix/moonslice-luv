@@ -110,20 +110,39 @@ function web.socketHandler(app) return function (client)
           done(info.should_keep_alive)
         else
 
-          -- Assume it's a readable stream and pipe it to the client
-          local function onRead(err, chunk)
-            if err then
-              return client:write(tostring(err))(function ()
-                done(false)
-              end)
-            end
-            if chunk then
-              client:write(chunk)()
-              return body:read()(onRead)
-            end
-            done(info.should_keep_alive)
+          local function abort(err)
+            client:write(tostring(err))(function ()
+              done(false)
+            end)
           end
-          body:read()(onRead)
+          -- Assume it's a readable stream and pipe it to the client
+          local function consume()
+            local isAsync
+            -- pump with trampoline in case of sync streams
+            repeat
+              isAsync = nil
+              body:read()(function (err, chunk)
+                if err then return abort(err) end
+                if chunk then
+                  client:write(chunk)()
+                else
+                  return done(info.should_keep_alive)
+                end
+                if isAsync == true then
+                  -- It was async, so we need to start a new repeat loop
+                  consume()
+                elseif isAsync == nil then
+                  -- It was sync, mark as sure
+                  isAsync = false
+                end
+              end)
+              -- read returned before calling the callback, it's async.
+              if isAsync == nil then
+                isAsync = true
+              end
+            until isAsync == true
+          end
+          consume()
 
         end
       end)
