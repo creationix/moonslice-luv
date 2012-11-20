@@ -96,9 +96,9 @@ function TcpStream:initialize(handle)
   handle:readStart()
 end
 
-function TcpStream:close() return function (callback)
+function TcpStream:close()
   self.handle:close()
-end end
+end
 
 function TcpStream:resume()
   return self.handle:readStart()
