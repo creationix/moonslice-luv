@@ -145,7 +145,6 @@ local function sha1(str)
 end
 
 local function sha1_binary(str)
-  print("sha1", str)
   str = PreProcess(str)
   h0  = 1732584193
   h1  = 4023233417
