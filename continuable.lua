@@ -38,6 +38,13 @@ function Queue:shift()
   return value
 end
 
+function Queue:unshift(item)
+  -- Insert the item at the front of the head queue
+  self.headLength = self.headLength + 1
+  return table.insert(self.head, 1, item)
+end
+
+
 function Queue:push(item)
   -- Pushes always go to the write-only tail
   self.length = self.length + 1

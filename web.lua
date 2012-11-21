@@ -181,7 +181,21 @@ function web.socketHandler(app) return function (client)
     if chunk then
       if #chunk > 0 then
         local nparsed = parser:execute(chunk, 0, #chunk)
-        -- TODO: handle various cases here
+        if request and request.upgrade then
+          -- Put the extra data back on the socket if there is any
+          if nparsed < #chunk then
+            -- TODO: find a way to do this without assuming client is a
+            -- ReadableStream instance.  It should be allowed to be any readable
+            -- stream following the abstract interface.
+            client.inputQueue:unshift(chunk:sub(nparsed + 1))
+          end
+          -- Stop pumping to html parser
+          return
+        end
+        if nparsed < #chunk then
+          -- Parse error, close the connection
+          return client:close()
+        end
       end
       return client:read()(onRead)
     end
