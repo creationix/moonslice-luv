@@ -45,13 +45,10 @@ local function ToHex(num)
 end
 
 local function ToBin(num)
-  local i, d
-  local str = ""
-  for i = 1, 4 do
-    str = strchar(band(num, 255)) .. str
-    num = floor(num / 256)
-  end
-  return str
+  return strchar(band(shr(num, 24), 255))
+      .. strchar(band(shr(num, 16), 255))
+      .. strchar(band(shr(num, 8), 255))
+      .. strchar(band(num, 255))
 end
 
 -------------------------------------------------
