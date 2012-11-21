@@ -45,10 +45,12 @@ local function ToHex(num)
 end
 
 local function ToBin(num)
-  return strchar(band(shr(num, 24), 255))
-      .. strchar(band(shr(num, 16), 255))
-      .. strchar(band(shr(num, 8), 255))
-      .. strchar(band(num, 255))
+  return table.concat({
+    strchar(band(shr(num, 24), 255)),
+    strchar(band(shr(num, 16), 255)),
+    strchar(band(shr(num, 8), 255)),
+    strchar(band(num, 255))
+  })
 end
 
 -------------------------------------------------
