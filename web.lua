@@ -1,6 +1,6 @@
 local newHttpParser = require('lhttp_parser').new
 local parseUrl = require('lhttp_parser').parseUrl
-local ReadableStream = require('continuable').ReadableStream
+local newStream = require('stream').newStream
 local table = require('table')
 local stringFormat = require('string').format
 
@@ -65,7 +65,7 @@ local STATUS_CODES = {
 function web.socketHandler(app) return function (client)
 
   local currentField, headers, url, request, done
-  local parser
+  local parser, bodyStream
   parser = newHttpParser("request", {
     onMessageBegin = function ()
       headers = {}
@@ -81,7 +81,11 @@ function web.socketHandler(app) return function (client)
     end,
     onHeadersComplete = function (info)
       request = info
-      request.body = ReadableStream:new()
+      bodyStream = newStream()
+      request.body = {
+        read = bodyStream.read,
+        unshift = bodyStream.unshift
+      }
       request.url = url
       request.headers = headers
       request.parser = parser
@@ -112,13 +116,13 @@ function web.socketHandler(app) return function (client)
             table.insert(head, body)
           end
         end
-        client:write(head)()
+        client.write(head)()
         if not isStream then
           done(info.should_keep_alive)
         else
 
           local function abort(err)
-            client:write(tostring(err))(function ()
+            client.write(tostring(err))(function ()
               done(false)
             end)
           end
@@ -128,10 +132,10 @@ function web.socketHandler(app) return function (client)
             -- pump with trampoline in case of sync streams
             repeat
               isAsync = nil
-              body:read()(function (err, chunk)
+              body.read()(function (err, chunk)
                 if err then return abort(err) end
                 if chunk then
-                  client:write(chunk)()
+                  client.write(chunk)()
                 else
                   return done(info.should_keep_alive)
                 end
@@ -155,12 +159,10 @@ function web.socketHandler(app) return function (client)
       end)
     end,
     onBody = function (chunk)
-      request.body.inputQueue:push(chunk)
-      request.body:processReaders()
+      bodyStream.write(chunk)
     end,
     onMessageComplete = function ()
-      request.body.inputQueue:push()
-      request.body:processReaders()
+      bodyStream.write()
     end
   })
 
@@ -168,10 +170,7 @@ function web.socketHandler(app) return function (client)
     if keepAlive then
       parser:reinitialize("request")
     else
-      client:write()(function (err)
-        if (err) then error(err) end
-        client:close()
-      end)
+      client.write()
     end
   end
 
@@ -184,24 +183,21 @@ function web.socketHandler(app) return function (client)
         if request and request.upgrade then
           -- Put the extra data back on the socket if there is any
           if nparsed < #chunk then
-            -- TODO: find a way to do this without assuming client is a
-            -- ReadableStream instance.  It should be allowed to be any readable
-            -- stream following the abstract interface.
-            client.inputQueue:unshift(chunk:sub(nparsed + 1))
+            client.unshift(chunk:sub(nparsed + 1))
           end
           -- Stop pumping to html parser
           return
         end
         if nparsed < #chunk then
           -- Parse error, close the connection
-          return client:close()
+          return client.write()()
         end
       end
-      return client:read()(onRead)
+      return client.read()(onRead)
     end
     parser:finish()
   end
-  client:read()(onRead)
+  client.read()(onRead)
 
 end end
 
