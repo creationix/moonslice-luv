@@ -67,4 +67,28 @@ function continuable.createServer(host, port, onConnection)
   return server
 end
 
+function continuable.timeout(ms) return function (callback)
+  local timer = uv.newTimer()
+  timer.ontimeout = function ()
+    callback()
+    timer:close()
+  end
+  timer:start(ms, 0)
+end end
+
+local tickQueue = {}
+function continuable.nextTick() return function (callback)
+  table.insert(tickQueue, callback)
+end end
+
+function continuable.flushTickQueue()
+  while #tickQueue > 0 do
+    local queue = tickQueue
+    tickQueue = {}
+    for i, v in ipairs(queue) do
+      v()
+    end
+  end
+end
+
 return continuable
