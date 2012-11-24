@@ -3,7 +3,7 @@ local dump = require('utils').dump
 local runOnce = require('luv').runOnce
 local socketHandler = require('web').socketHandler
 local createServer = require('continuable').createServer
-local ReadableStream = require('continuable').ReadableStream
+local newStream = require('stream').newStream
 local fiber = require('fiber')
 
 local host = os.getenv("IP") or "0.0.0.0"
@@ -38,23 +38,18 @@ app = require('log')(app)
 
 p{app=app}
 
-local body = ReadableStream:new()
+local body = newStream()
 
 app({
   method = "PUT",
-  body = body,
+  body = {read = body.read},
   url = { path = "/" },
   headers = {}
 }, p)
 
-body.inputQueue:push("Hello ")
-body:processReaders()
-
-body.inputQueue:push("World\n")
-body:processReaders()
-
-body.inputQueue:push()
-body:processReaders()
+body.write("Hello ")()
+body.write("World\n")()
+body.write()()
 
 createServer(host, port, socketHandler(app))
 print("http server listening at http://localhost:8080/")
