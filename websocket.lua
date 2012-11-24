@@ -1,7 +1,7 @@
 local ffi = require('ffi')
 local bit = require('bit')
 local sha1_binary = require("sha1").sha1_binary
-local Emitter = require('core').Emitter
+local newPipe = require('stream').newPipe
 
 local bytes = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -255,35 +255,41 @@ local function upgrade(req)
   local key = req.headers["sec-websocket-key"]
   local token = getToken(key)
   local socket = req.socket
-  socket:write({
+  socket.write({
     "HTTP/1.1 101 Switching Protocols\r\n",
     "Upgrade: websocket\r\n",
     "Connection: Upgrade\r\n",
     "Sec-WebSocket-Accept: ", token, "\r\n",
     "\r\n"
   })()
-  local emitter = Emitter:new()
+  local internal, external = newPipe()
   local parser = deframer(function (message, head)
-    emitter:emit("message", message, head)
+    internal.write(message, head)()
   end)
   local function onRead(err, chunk)
     if err then error(err) end
     if chunk then
       parser(chunk)
-      socket:read()(onRead)
+      socket.read()(onRead)
     else
-      emitter:emit("end")
+      internal.write()()
     end
   end
-  socket:read()(onRead)
+  socket.read()(onRead)
 
-  function emitter:send(message)
-    socket:write(frame(message, {
-      fin = true,
-      opcode = 1
-    }))()
+  local function read()
+    internal.read()(function (err, message)
+      if err then error(err) end
+      socket.write(frame(message, {
+        fin = true,
+        opcode = 1
+      }))()
+      if message then read() end
+    end)
   end
-  return emitter
+  read()
+
+  return external
 
 end
 

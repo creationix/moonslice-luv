@@ -1,7 +1,7 @@
 local p = require('utils').prettyPrint
 local runOnce = require('luv').runOnce
 local socketHandler = require('web').socketHandler
-local createServer = require('continuable').createServer
+local createServer = require('uv').createServer
 local fiber = require('fiber')
 
 local host = os.getenv("IP") or "0.0.0.0"

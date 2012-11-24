@@ -1,7 +1,7 @@
 local p = require('utils').prettyPrint
 local runOnce = require('luv').runOnce
 local socketHandler = require('web').socketHandler
-local createServer = require('continuable').createServer
+local createServer = require('uv').createServer
 local websocket = require('websocket')
 
 local host = os.getenv("IP") or "0.0.0.0"
@@ -11,16 +11,19 @@ local app = function (req, res)
 --  p{req=req,res=res}
   if req.upgrade then
     local socket = websocket.upgrade(req)
-    socket:on("message", function (message, head)
-      p({
-        message=message,
-        opcode=head.opcode
-      })
-      socket:send("Hello " .. message)
-    end)
-    socket:on("end", function ()
-      p("end")
-    end)
+    local function read()
+      socket.read()(function (err, message)
+        if err then error(err) end
+        p(message)
+        if message then
+          socket.write("Hello " .. message)()
+          read()
+        else
+          socket.write()()
+        end
+      end)
+    end
+    read()
     return
   end
   res(200, {

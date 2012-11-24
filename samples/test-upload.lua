@@ -2,7 +2,7 @@ local p = require('utils').prettyPrint
 local dump = require('utils').dump
 local runOnce = require('luv').runOnce
 local socketHandler = require('web').socketHandler
-local createServer = require('continuable').createServer
+local createServer = require('uv').createServer
 local newStream = require('stream').newStream
 local fiber = require('fiber')
 
@@ -13,11 +13,12 @@ local app = function (req, res)
   fiber.new(function ()
     local parts = {}
     repeat
-      local chunk = fiber.await(req.body:read())
+      local chunk = fiber.await(req.body.read())
       if chunk then
         table.insert(parts, chunk)
       end
     until not chunk
+  p(parts)
     req.body = parts
     local body = dump(req) .. "\n"
     res(200, {
@@ -54,9 +55,7 @@ body.write()()
 createServer(host, port, socketHandler(app))
 print("http server listening at http://localhost:8080/")
 
-require('luv').run()
-
---repeat
---  print(".\n")
---until runOnce() == 0
+repeat
+  print(".\n")
+until runOnce() == 0
 print("done.")

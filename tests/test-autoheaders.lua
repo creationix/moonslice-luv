@@ -1,5 +1,3 @@
-package.path = "../?.lua;" .. package.path
-package.cpath = "../?.so;" .. package.cpath
 local autoheaders = require('autoheaders')
 local newStream = require('stream').newStream
 local await = require('fiber').await
