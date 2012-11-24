@@ -1,51 +1,56 @@
 
-local function newQueue()
-  local head = {}
-  local tail = {}
-  local index = 1
-  local headLength = 0
-  local queue = {
-    length = 0
-  }
-
-  function queue.shift()
-
-    if index > headLength then
-      -- When the head is empty, swap it with the tail to get fresh items
-      head, tail = tail, head
-      index = 1
-      headLength = #head
-      -- If it's still empty, return nothing
-      if headLength == 0 then
-        return
-      end
+local Queue = {}
+-- Get an item from the font of the queue
+function Queue:shift()
+  if self.index > self.headLength then
+    -- When the head is empty, swap it with the tail to get fresh items
+    self.head, self.tail = self.tail, self.head
+    self.index = 1
+    self.headLength = #self.head
+    -- If it's still empty, return nothing
+    if self.headLength == 0 then
+      return
     end
-
-    -- There was an item in the head, let's pull it out
-    local value = head[index]
-    -- And remove it from the head
-    head[index] = nil
-    -- And bump the index
-    index = index + 1
-    queue.length = queue.length - 1
-    return value
-
   end
 
-  function queue.unshift()
-    -- Insert the item at the front of the head queue
-    headLength = headLength + 1
-    return table.insert(head, 1, item)
-  end
-
-  function queue.push(item)
-    -- Pushes always go to the write-only tail
-    queue.length = queue.length + 1
-    return table.insert(tail, item)
-  end
-
-  return queue
+  -- There was an item in the head, let's pull it out
+  local value = self.head[self.index]
+  -- And remove it from the head
+  self.head[self.index] = nil
+  -- And bump the index
+  self.index = self.index + 1
+  self.length = self.length - 1
+  return value
 end
+
+-- Put an item back on the queue
+function Queue:unshift(item)
+    self.headLength = self.headLength + 1
+    return table.insert(self.head, 1, item)
+end
+
+-- Push a new item on the back of the queue
+function Queue:push(item)
+    -- Pushes always go to the write-only tail
+    self.length = self.length + 1
+    return table.insert(self.tail, item)
+end
+
+function Queue:initialize()
+end
+
+local metaQueue = {__index=Queue}
+
+local function newQueue()
+  return setmetatable({
+    head = {},
+    tail = {},
+    index = 1,
+    headLength = 0,
+    length = 0
+  }, metaQueue)
+end
+
 
 local function newStream()
 
@@ -65,8 +70,8 @@ local function newStream()
     if processing then return end
     processing = true
     while inputQueue.length > 0 and readerQueue.length > 0 do
-      local chunk = inputQueue.shift()
-      local reader = readerQueue.shift()
+      local chunk = inputQueue:shift()
+      local reader = readerQueue:shift()
       reader(nil, chunk)
     end
     local watermark = inputQueue.length - readerQueue.length
@@ -90,12 +95,12 @@ local function newStream()
   end
 
   local function read() return function (callback)
-    readerQueue.push(callback)
+    readerQueue:push(callback)
     processReaders()
   end end
 
   local function write(chunk) return function (callback)
-    inputQueue.push(chunk)
+    inputQueue:push(chunk)
     processReaders()
     if callback then
       if paused then
@@ -107,7 +112,7 @@ local function newStream()
   end end
 
   local function unshift(chunk)
-    inputQueue.unshift(chunk)
+    inputQueue:unshift(chunk)
     processReaders()
   end
 
@@ -119,6 +124,5 @@ local function newStream()
 end
 
 return {
-  newStream = newStream,
-  newQueue = newQueue
+  newStream = newStream
 }
