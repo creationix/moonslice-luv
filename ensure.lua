@@ -10,8 +10,7 @@ local index = 1
 local function run()
   local test = tests[index]
   if not test then
-    print("All tests done")
-    return
+    os.exit()
   end
   local position = "(" .. index .. "/" .. #tests .. ") "
   index = index + 1
@@ -47,6 +46,8 @@ local function describe(name, block)
   block()
   if isOuter then
     run()
+    print("Not all tests completed")
+    os.exit(-1)
   end
 end
 

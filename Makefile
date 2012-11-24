@@ -1,3 +1,6 @@
+
+LUA=luajit
+
 all: lhttp_parser/lhttp_parser.so luv/luv.so
 
 lhttp_parser/Makefile:
@@ -13,4 +16,7 @@ luv/luv.so: luv/Makefile
 	$(MAKE) -C luv
 
 test:
-	ls tests/*.lua | xargs -l luajit
+	$(LUA) tests/test-autoheaders.lua && \
+	$(LUA) tests/test-web.lua && \
+	echo "All Tests Passed..." && \
+	echo "Now go write more!"
