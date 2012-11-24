@@ -6,22 +6,12 @@ local fiber = {}
 -- Map of managed coroutines
 local fibers = {}
 
-local function formatError(co, err)
-  local stack = debug.traceback(co, tostring(err))
-  if type(err) == "table" then
-    err.message = stack
-    return err
-  end
-  return stack
-end
-
 local function check(co, success, ...)
   local fiber = fibers[co]
 
   if not success then
-    local err = formatError(co, ...)
     if fiber and fiber.callback then
-      return fiber.callback(err)
+      return fiber.callback(...)
     end
     error(err)
   end

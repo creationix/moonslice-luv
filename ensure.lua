@@ -13,14 +13,14 @@ local function run()
     print("All tests done")
     return
   end
+  local position = "(" .. index .. "/" .. #tests .. ") "
   index = index + 1
-
-  wrap(test.block, function (err)
-    print(pass .. test.name .. "\27[0m")
+  wrap(test.block, function ()
+    print(position .. pass .. test.name .. "\27[0m")
     run()
   end)(function (err)
     if err then
-      print(fail .. test.name .. "\27[0m")
+      print(position .. fail .. test.name .. "\27[0m")
       print(err)
       run()
     end
@@ -61,7 +61,6 @@ local function same(a, b)
   end
   return true
 end
-
 
 return {
   describe = describe,

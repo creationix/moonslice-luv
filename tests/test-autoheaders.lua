@@ -1,4 +1,3 @@
-
 package.path = "../?.lua;" .. package.path
 package.cpath = "../?.so;" .. package.cpath
 local autoheaders = require('autoheaders')
