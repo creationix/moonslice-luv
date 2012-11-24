@@ -1,4 +1,3 @@
-local ReadableStream = require('continuable').ReadableStream
 local stringFormat = require('string').format
 local osDate = require('os').date
 

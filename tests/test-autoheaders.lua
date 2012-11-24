@@ -4,8 +4,8 @@ local autoheaders = require('autoheaders')
 local newStream = require('stream').newStream
 local await = require('fiber').await
 local p = require('utils').prettyPrint
-local nextTick = require('continuable').nextTick
-local flushTickQueue = require('continuable').flushTickQueue
+local tick = require('tick').tick
+local flushTickQueue = require('tick').flushTickQueue
 local describe = require('ensure').describe
 local same = require('ensure').same
 
@@ -218,11 +218,11 @@ describe("autoheaders", function ()
       index = index + 1
       stream.write(message)(function ()
         if message then
-          nextTick()(next)
+          tick()(next)
         end
       end)
     end
-    nextTick()(next)
+    tick()(next)
 
   end)
 

@@ -4,8 +4,6 @@ local web = require('web')
 local newStream = require('stream').newStream
 local await = require('fiber').await
 local p = require('utils').prettyPrint
-local nextTick = require('continuable').nextTick
-local flushTickQueue = require('continuable').flushTickQueue
 local describe = require('ensure').describe
 local same = require('ensure').same
 
