@@ -111,18 +111,23 @@ local function newStream()
     end
   end end
 
-  local function unshift(chunk)
-    inputQueue:unshift(chunk)
-    processReaders()
-  end
-
   return {
     read = read,
-    write = write,
-    unshift = unshift
+    write = write
   }
 end
 
+local function newPipe()
+  -- Create two streams
+  local a, b = newStream(), newStream()
+  -- Cross their write functions
+  a.write, b.write = b.write, a.write
+  -- Return them as two duplex streams that are the two ends of the pipe
+  return a, b
+end
+
+
 return {
-  newStream = newStream
+  newStream = newStream,
+  newPipe = newPipe
 }
