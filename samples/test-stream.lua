@@ -1,5 +1,5 @@
 local p = require('utils').prettyPrint
-local runOnce = require('luv').runOnce
+local run_once = require('luv').run_once
 local socketHandler = require('web').socketHandler
 local createServer = require('uv').createServer
 local fiber = require('fiber')
@@ -77,7 +77,7 @@ repeat
     end
   end
   p("waiting for further events...")
-until runOnce() == 0
+until run_once() == 0
 
 --repeat
 --  print(".\n")

@@ -16,7 +16,7 @@ luv/luv.so: luv/Makefile
 	$(MAKE) -C luv
 
 test:
-	$(LUA) tests/test-autoheaders.lua && \
+	@ $(LUA) tests/test-autoheaders.lua && \
 	$(LUA) tests/test-web.lua && \
 	echo "All Tests Passed..." && \
 	echo "Now go write more!"

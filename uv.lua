@@ -17,17 +17,17 @@ local function newHandleStream(handle)
       if err then error(err) end
       if async == nil then async = false end
       if async then
-        handle:readStart()
+        uv.read_start(handle)
       end
     end)
     if async == nil then
       async = true
-      handle:readStop()
+      uv.readStop(handle)
     end
   end
   handle.ondata = write
   handle.onend = write
-  handle:readStart()
+  uv.read_start(handle)
 
   -- Connect data being written to the stream and write it to the handle
   local function read(err)
@@ -36,10 +36,10 @@ local function newHandleStream(handle)
     internal.read()(function (err, chunk)
       if err then error(err) end
       if chunk then
-        handle:write(chunk, read)
+        uv.write(handle, chunk, read)
       else
-        handle:shutdown(function ()
-          handle:close()
+        uv.shutdown(handle, function ()
+          uv.close(handle)
         end)
       end
     end)
@@ -50,14 +50,14 @@ local function newHandleStream(handle)
 end
 
 function continuable.createServer(host, port, onConnection)
-  local server = uv.newTcp()
-  server:bind(host, port)
+  local server = uv.new_tcp()
+  uv.tcp_bind(server, host, port)
   function server:onconnection()
-    local client = uv.newTcp()
-    server:accept(client)
+    local client = uv.new_tcp()
+    uv.accept(server, client)
     onConnection(newHandleStream(client))
   end
-  server:listen()
+  uv.listen(server)
   return server
 end
 
@@ -65,9 +65,9 @@ function continuable.timeout(ms) return function (callback)
   local timer = uv.newTimer()
   timer.ontimeout = function ()
     callback()
-    timer:close()
+    uv.close(timer)
   end
-  timer:start(ms, 0)
+  uv.timer_start(timer, ms, 0)
 end end
 
 return continuable
