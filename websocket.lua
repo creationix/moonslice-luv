@@ -2,6 +2,7 @@ local ffi = require('ffi')
 local bit = require('bit')
 local sha1_binary = require("sha1").sha1_binary
 local newPipe = require('stream').newPipe
+local p = require('utils').prettyPrint
 
 local bytes = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -264,7 +265,11 @@ local function upgrade(req)
   })()
   local internal, external = newPipe()
   local parser = deframer(function (message, head)
-    internal.write(message, head)()
+    if head.opcode == 0x8 then
+      internal.write()()
+    else
+      internal.write(message)()
+    end
   end)
   local function onRead(err, chunk)
     if err then error(err) end
@@ -280,11 +285,13 @@ local function upgrade(req)
   local function read()
     internal.read()(function (err, message)
       if err then error(err) end
-      socket.write(frame(message, {
-        fin = true,
-        opcode = 1
-      }))()
-      if message then read() end
+      if message then
+        socket.write(frame(message, {
+          fin = true,
+          opcode = 1
+        }))()
+        read()
+      end
     end)
   end
   read()
