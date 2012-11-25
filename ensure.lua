@@ -29,7 +29,7 @@ local function run()
 
 end
 
-local function describe(name, block)
+local function describe(name, block, cleanup)
   local isOuter = not tests
   if isOuter then
     tests = {}
@@ -48,6 +48,7 @@ local function describe(name, block)
   block()
   if isOuter then
     run()
+    if cleanup then cleanup() end
     print(position .. fail .. test.name .. "\27[0m")
     print("Process exited before done() was called")
     os.exit(-1)

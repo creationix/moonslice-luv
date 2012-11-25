@@ -225,6 +225,4 @@ describe("autoheaders", function ()
   end)
 
 
-end)
-
-flushTickQueue()
+end, flushTickQueue)
