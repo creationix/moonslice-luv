@@ -9,7 +9,6 @@ io.stdout = uv.new_tty(1)
 io.stderr = uv.new_tty(2)
 io.stdout.write = uv.write
 io.stderr.write = uv.write
-io.stdout:write("TEST\n")
 
 local function gatherResults(success, ...)
   local n = select('#', ...)

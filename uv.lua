@@ -62,12 +62,20 @@ function continuable.createServer(host, port, onConnection)
 end
 
 function continuable.timeout(ms) return function (callback)
-  local timer = uv.newTimer()
+  local timer = uv.new_timer()
   timer.ontimeout = function ()
     callback()
     uv.close(timer)
   end
   uv.timer_start(timer, ms, 0)
+  return timer
+end end
+
+function continuable.interval(ms) return function (callback)
+  local timer = uv.new_timer()
+  timer.ontimeout = callback
+  uv.timer_start(timer, ms, ms)
+  return timer
 end end
 
 return continuable
