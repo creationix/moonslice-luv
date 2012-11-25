@@ -6,13 +6,15 @@ local pass = "\27[1;32m◀\27[0mPASS\27[1;32m▶\27[0m\27[0;32m "
 local fail = "\27[1;31m◀\27[0mFAIL\27[1;31m▶\27[0m\27[0;31m "
 local tests
 local index = 1
+local position
+local test
 
 local function run()
-  local test = tests[index]
+  test = tests[index]
   if not test then
     os.exit()
   end
-  local position = "(" .. index .. "/" .. #tests .. ") "
+  position = "(" .. index .. "/" .. #tests .. ") "
   index = index + 1
   wrap(test.block, function ()
     print(position .. pass .. test.name .. "\27[0m")
@@ -46,7 +48,8 @@ local function describe(name, block)
   block()
   if isOuter then
     run()
-    print("Not all tests completed")
+    print(position .. fail .. test.name .. "\27[0m")
+    print("Process exited before done() was called")
     os.exit(-1)
   end
 end
