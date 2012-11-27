@@ -78,4 +78,30 @@ function continuable.interval(ms) return function (callback)
   return timer
 end end
 
+local fs = {}
+continuable.fs = fs
+function fs.open(path, flags, mode) return function (callback)
+  mode = mode or tonumber("666", 8)
+  return uv.fs_open(path, flags, mode, callback)
+end end
+
+function fs.close(fd) return function (callback)
+  return uv.fs_close(fd, callback or noop)
+end end
+
+function fs.stat(path) return function (callback)
+  return uv.fs_stat(path, callback)
+end end
+function fs.fstat(fd) return function (callback)
+  return uv.fs_fstat(fd, callback)
+end end
+function fs.lstat(path) return function (callback)
+  return uv.fs_lstat(path, callback)
+end end
+
+function fs.read(path, length, offset) return function (callback)
+  return uv.fs_stat(path, length, offset, callback)
+end end
+
+
 return continuable
