@@ -3,6 +3,7 @@ local wait = require('fiber').wait
 local fs = require('uv').fs
 local websocket = require('websocket')
 local sendFile = require('send').file
+local numToBase= require('send').numToBase
 
 local App = {}
 
@@ -39,18 +40,18 @@ function App:websocket(path, fn)
 end
 
 function App:static(root, options)
-  local path
   table.insert(self, {function (req)
     if not(req.method == "GET" or req.method == "HEAD") then
       return false
     end
-    path = root .. req.url.path
-    if options.index and path:sub(#path) == "/" then
-      path = path .. options.index
+    if options.index and req.url.path:sub(#req.url.path) == "/" then
+      req.url.path = req.url.path .. options.index
     end
+    local path = root .. req.url.path
     local err, stat = wait(fs.stat(path))
     return stat and stat.is_file
   end, function (req, res)
+    local path = root .. req.url.path
     sendFile(path, req, res)
   end, "static " .. root})
 end
@@ -64,7 +65,7 @@ function appMeta:__call(req, res)
   local id
   if self.log then
     index = index + 1
-    id = tostring(index)
+    id = numToBase(index, 64)
     local realRes = res
     res = function (code, headers, body)
       print("-> " .. id  .. " " .. code)
