@@ -19,16 +19,16 @@ local function check(co, success, err, ...)
 
   -- Abort on non-managed coroutines.
   if not fiber then
-    return ...
+    return err, ...
   end
 
   -- If the fiber is done, pass the result to the callback and cleanup.
   if not fiber.paused then
     fibers[co] = nil
     if fiber.callback then
-      fiber.callback(nil, ...)
+      fiber.callback(nil, err, ...)
     end
-    return ...
+    return err, ...
   end
 
   fiber.paused = false
