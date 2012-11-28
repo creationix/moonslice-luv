@@ -100,7 +100,7 @@ function fs.lstat(path) return function (callback)
 end end
 
 function fs.read(path, length, offset) return function (callback)
-  return uv.fs_stat(path, length, offset, callback)
+  return uv.fs_read(path, length, offset, callback)
 end end
 
 

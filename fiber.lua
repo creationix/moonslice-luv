@@ -6,12 +6,13 @@ local fiber = {}
 -- Map of managed coroutines
 local fibers = {}
 
-local function check(co, success, ...)
+local function check(co, success, err, ...)
   local fiber = fibers[co]
 
   if not success then
+    err = debug.traceback(co, err, 1)
     if fiber and fiber.callback then
-      return fiber.callback(...)
+      return fiber.callback(err, ...)
     end
     error(err)
   end
