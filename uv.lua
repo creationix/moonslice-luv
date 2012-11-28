@@ -46,6 +46,7 @@ local function newHandleStream(handle)
   end
   read()
 
+  external.address = uv.tcp_getpeername(handle)
   return external
 end
 
