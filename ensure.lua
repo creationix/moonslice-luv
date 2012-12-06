@@ -9,6 +9,32 @@ local index = 1
 local position
 local test
 
+-- Emulate Lua 5.1 getfenv if it is missing:
+local getfenv = getfenv or function(f, t)
+	f = (type(f) == 'function' and f or debug.getinfo(f + 1, 'f').func)
+	local name, env
+	local up = 0
+	repeat
+		up = up + 1
+		name, env = debug.getupvalue(f, up)
+	until name == '_ENV' or name == nil
+	return env
+end
+
+-- Emulate Lua 5.1 setfenv if it is missing:
+local setfenv = setfenv or function(f, t)
+	f = (type(f) == 'function' and f or debug.getinfo(f + 1, 'f').func)
+	local name
+	local up = 0
+	repeat
+		up = up + 1
+		name = debug.getupvalue(f, up)
+	until name == '_ENV' or name == nil
+	if name then
+		debug.upvaluejoin(f, up, function() return t end, 1) -- use unique upvalue, set it to f
+	end
+end
+
 local function run()
   test = tests[index]
   if not test then

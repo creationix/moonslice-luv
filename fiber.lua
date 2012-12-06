@@ -1,6 +1,9 @@
 local coroutine = require('coroutine')
 local debug = require('debug')
 
+-- Make table.unpack accessible in Lua 5.2
+local unpack = unpack or table.unpack
+
 local fiber = {}
 
 -- Map of managed coroutines
