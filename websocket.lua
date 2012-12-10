@@ -3,33 +3,7 @@ local bit = require('bit')
 local sha1_binary = require("sha1").sha1_binary
 local newPipe = require('stream').newPipe
 local p = require('utils').prettyPrint
-
-local bytes = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-               'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-               'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'}
-
-local function base64Encode(data)
-  local parts = {}
-  for i = 1, #data, 3 do
-    local val = bit.lshift(data:byte(i), 16)
-              + bit.lshift(data:byte(i + 1) or 0, 8)
-              + (data:byte(i + 2) or 0)
-    table.insert(parts, bytes[bit.band(bit.rshift(val, 18), 0x3f) + 1])
-    table.insert(parts, bytes[bit.band(bit.rshift(val, 12), 0x3f) + 1])
-    table.insert(parts, bytes[bit.band(bit.rshift(val, 6), 0x3f) + 1])
-    table.insert(parts, bytes[bit.band(val, 0x3f) + 1])
-  end
-  local rem = #data % 3
-  if rem == 1 then
-    parts[#parts] = "="
-    parts[#parts - 1] = "="
-  elseif rem == 2 then
-    parts[#parts] = "="
-  end
-  return table.concat(parts)
-end
+local base64Encode = require("base64").encode
 
 ffi.cdef([[
 typedef struct {
