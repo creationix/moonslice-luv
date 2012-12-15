@@ -33,7 +33,7 @@ function base64.decode(data)
 
 	if data:sub(#data-1) == "==" then
 		parts[#parts] = nil
-		parts[#parts-1] = nil
+		parts[#parts] = nil
 	elseif data:sub(#data) == "=" then
 		parts[#parts] = nil
 	end
