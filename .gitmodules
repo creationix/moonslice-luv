@@ -4,3 +4,6 @@
 [submodule "luv"]
 	path = luv
 	url = https://github.com/creationix/luv.git
+[submodule "lua-pwauth"]
+	path = lua-pwauth
+	url = https://github.com/devurandom/lua-pwauth.git
