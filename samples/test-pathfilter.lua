@@ -17,6 +17,12 @@ app = require('path-filter')(app, "/f", function (app)
 	end
 end)
 
+app = require('path-filter')(app, {"notmatch", "/f"}, function (app)
+	return function(req, res)
+		res(403, {}, {"Bingo!"})
+	end
+end)
+
 app = require('autoheaders')(app)
 
 app = require('log')(app)
