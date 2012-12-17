@@ -1,12 +1,12 @@
-local errorhandlers = {}
+local errordocument = {}
 
-function errorhandlers.text(text)
+function errordocument.text(text)
 	return function (code, headers, body, res)
 		res(code, headers, text)
 	end
 end
 
-function errorhandlers.file(path)
+function errordocument.file(path)
 	return function (code, headers, body, res)
 		local file = io.open(path)
 		body = file:read("*a")
@@ -14,7 +14,7 @@ function errorhandlers.file(path)
 	end
 end
 
-function errorhandlers.execute(path)
+function errordocument.execute(path)
 	return function (code, headers, body, res)
 		local chunk = loadfile(path)
 		local success, err = pcall(chunk, code, headers, body, res)
@@ -25,7 +25,7 @@ function errorhandlers.execute(path)
 	end
 end
 
-function errorhandlers.redirect(url)
+function errordocument.redirect(url)
 	return function (code, headers, body, res)
 		code = 302
 		headers["Location"] = url
@@ -33,4 +33,4 @@ function errorhandlers.redirect(url)
 	end
 end
 
-return errorhandlers
+return errordocument

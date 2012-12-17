@@ -1,7 +1,7 @@
 local p = require('utils').prettyPrint
 local socketHandler = require('web').socketHandler
 local createServer = require('uv').createServer
-local errhdl = require('errorhandlers')
+local edoc = require('utils.error-document')
 
 local host = os.getenv("IP") or "0.0.0.0"
 local port = os.getenv("PORT") or 8080
@@ -23,7 +23,7 @@ local app = function (req, res)
 end
 
 app = require('error-document')(app, {
-	[404] = errhdl.text("TEST 404"),
+	[404] = edoc.text("TEST 404"),
 })
 
 app = require('autoheaders')(app)
