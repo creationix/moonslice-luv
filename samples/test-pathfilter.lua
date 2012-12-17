@@ -1,6 +1,7 @@
 local p = require('utils').prettyPrint
 local socketHandler = require('web').socketHandler
 local createServer = require('uv').createServer
+local pflt = require('utils.path-filter')
 
 local host = os.getenv("IP") or "0.0.0.0"
 local port = os.getenv("PORT") or 8080
@@ -11,13 +12,13 @@ local app = function (req, res)
   }, {"Hello ", "World\n"})
 end
 
-app = require('path-filter')(app, "/f", function (app)
+app = require('path-filter')(app, pflt.equal("/f"), function (app)
 	return function(req, res)
 		res(404, {}, {"Bam!"})
 	end
 end)
 
-app = require('path-filter')(app, {"notmatch", "/f"}, function (app)
+app = require('path-filter')(app, pflt.notmatch("/f"), function (app)
 	return function(req, res)
 		res(403, {}, {"Bingo!"})
 	end
