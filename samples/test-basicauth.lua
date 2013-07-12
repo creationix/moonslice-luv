@@ -23,7 +23,7 @@ end
 local pam = require("pwauth").pam
 local provider = pam.new("system-auth")
 
-app = require("basic-auth")(app, {path="/", realm="TEST", provider=provider})
+app = require("basic-auth")(app, {realm="TEST", provider=provider})
 
 app = require('autoheaders')(app)
 
