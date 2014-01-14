@@ -1,5 +1,5 @@
 local p = require('utils').prettyPrint
-local runOnce = require('luv').runOnce
+local run = require('luv').run
 local socketHandler = require('web').socketHandler
 local createServer = require('uv').createServer
 local websocket = require('websocket')
@@ -46,9 +46,9 @@ app({
 createServer(host, port, socketHandler(app))
 print("http server listening at http://localhost:8080/")
 
-require('luv').run()
+require('luv').run('default')
 
 --repeat
 --  print(".\n")
---until runOnce() == 0
+--until run('once') == 0
 print("done.")

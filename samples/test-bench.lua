@@ -26,7 +26,7 @@ app({
 createServer(host, port, socketHandler(app))
 print("http server listening at http://localhost:8080/")
 
-require('luv').run()
+require('luv').run('default')
 
 --repeat
 --  print(".\n")

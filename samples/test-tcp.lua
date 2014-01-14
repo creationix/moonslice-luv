@@ -17,4 +17,4 @@ createServer(host, port, function (client)
 end)
 print("tcp echo server listening at port " .. port)
 
-run()
+run('default')

@@ -1,6 +1,6 @@
 local p = require('utils').prettyPrint
 local dump = require('utils').dump
-local run_once = require('luv').run_once
+local run = require('luv').run
 local socketHandler = require('web').socketHandler
 local createServer = require('uv').createServer
 local newStream = require('stream').newStream
@@ -57,5 +57,5 @@ print("http server listening at http://localhost:8080/")
 
 repeat
   print(".\n")
-until run_once() == 0
+until run('once') == 0
 print("done.")
