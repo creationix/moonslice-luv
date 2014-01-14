@@ -3,6 +3,12 @@ LUA=luajit
 
 all: lhttp_parser/lhttp_parser.so luv/luv.so
 
+lua-pwauth/Makefile:
+	git submodule update --init --recursive lua-pwauth
+
+lua-pwauth/lua-pam/pam.so: lua-pwauth/Makefile
+	$(MAKE) -C lua-pwauth
+
 lhttp_parser/Makefile:
 	git submodule update --init --recursive lhttp_parser
 
