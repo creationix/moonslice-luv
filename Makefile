@@ -26,3 +26,11 @@ test:
 	$(LUA) tests/test-web.lua && \
 	echo "All Tests Passed..." && \
 	echo "Now go write more!"
+
+clean:
+	$(MAKE) -C luv clean
+	$(MAKE) -C luv/libuv clean
+	$(MAKE) -C lhttp_parser clean
+	$(MAKE) -C lhttp_parser/http-parser clean
+	$(MAKE) -C lua-pwauth clean
+	$(MAKE) -C lua-pwauth/lua-pam clean

@@ -159,10 +159,10 @@ function web.socketHandler(app) return function (client)
       end)
     end,
     onBody = function (chunk)
-      bodyStream.write(chunk)
+      bodyStream.write(chunk)()
     end,
     onMessageComplete = function ()
-      bodyStream.write()
+      bodyStream.write()()
     end
   })
 

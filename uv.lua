@@ -22,7 +22,7 @@ local function newHandleStream(handle)
     end)
     if async == nil then
       async = true
-      uv.readStop(handle)
+      uv.read_stop(handle)
     end
   end
   handle.ondata = write
@@ -34,7 +34,10 @@ local function newHandleStream(handle)
     if err then error(err) end
     local async
     internal.read()(function (err, chunk)
-      if err then error(err) end
+      if err then 
+		  uv.close(handle)
+		  error(err) 
+	  end
       if chunk then
         uv.write(handle, chunk, read)
       else
@@ -60,6 +63,18 @@ function continuable.createServer(host, port, onConnection)
   end
   uv.listen(server)
   return server
+end
+
+function continuable.createClient(address, port, onConnect)
+	local client = uv.new_tcp()
+	uv.tcp_connect(client, address, port, function (status)
+		if status == 0 then
+			onConnect(newHandleStream(client))
+		else
+			onConnect(nil)
+		end
+	end	)
+	return client
 end
 
 function continuable.timeout(ms) return function (callback)
@@ -100,9 +115,12 @@ function fs.lstat(path) return function (callback)
   return uv.fs_lstat(path, callback)
 end end
 
-function fs.read(path, length, offset) return function (callback)
-  return uv.fs_read(path, length, offset, callback)
+function fs.read(fd, length, offset) return function (callback)
+  return uv.fs_read(fd, length, offset, callback)
 end end
 
+function fs.write(fd, chunk, offset) return function (callback)
+  return uv.fs_write(fd, chunk, offset, callback)
+end end
 
 return continuable

@@ -72,6 +72,7 @@ local function sendFile(path, req, res)
     await(body.write(chunk))
   until not chunk
 
+  wait(fs.close(fd))
 end
 
 return {
